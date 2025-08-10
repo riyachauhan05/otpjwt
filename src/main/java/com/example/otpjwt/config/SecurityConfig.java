@@ -19,11 +19,22 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/request-otp", "/api/auth/signup").permitAll()
+                // Public endpoints
+                .requestMatchers(
+                    "/api/auth/request-otp",
+                    "/api/auth/signup",
+                    "/error"
+                ).permitAll()
+
+                // OTP verification requires short-lived session token
                 .requestMatchers("/api/auth/verify-otp").authenticated()
+
+                // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
+            // No sessions, JWT only
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Register our JWT filter before the default authentication filter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

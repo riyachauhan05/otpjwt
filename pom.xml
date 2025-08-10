@@ -58,6 +58,7 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
+            
         </dependency>
 
         <!-- ArangoDB Spring Data Starter -->
@@ -102,6 +103,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+  <groupId>redis.clients</groupId>
+  <artifactId>jedis</artifactId>
+  <version>4.3.2</version>
+</dependency>
          
     </dependencies>
 

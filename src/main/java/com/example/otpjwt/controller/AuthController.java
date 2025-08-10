@@ -36,11 +36,17 @@ public class AuthController {
                                                   HttpServletResponse response) {
         String phone = body.getPhoneNumber();
 
+        if (!phone.matches("\\d{10}")) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(400, "Phone number must be exactly 10 digits", null));
+        }
+
         // Hardcoded OTP for demo
         String otp = "123456";
         otpService.saveOtp(phone, otp, shortExpiry);
 
-        String jwtSessionToken = jwtService.generateToken(phone, shortExpiry);
+        // Short-lived token for verifying OTP
+        String jwtSessionToken = jwtService.generatePhoneToken(phone, shortExpiry);
         response.setHeader("Authorization", "Bearer " + jwtSessionToken);
 
         return ResponseEntity.ok(new ApiResponse(200, "OTP sent to your phone number", null));
@@ -53,20 +59,24 @@ public class AuthController {
 
         String phoneFromToken = (String) request.getAttribute("phoneNumber");
         if (phoneFromToken == null) {
-            return ResponseEntity.badRequest().body(new ApiResponse(400, "Missing or invalid session token", null));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(400, "Missing or invalid session token", null));
         }
 
         String storedOtp = otpService.getOtp(phoneFromToken);
         if (storedOtp == null || !storedOtp.equals(body.getOtp())) {
-            return ResponseEntity.badRequest().body(new ApiResponse(400, "Invalid or expired OTP", null));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(400, "Invalid or expired OTP", null));
         }
 
         User user = authService.getUserByPhone(phoneFromToken);
 
-        long expiry = (user != null) ? longExpiry : shortExpiry;
-        String verificationToken = jwtService.generateToken(phoneFromToken, expiry);
-        response.setHeader("Authorization", "Bearer " + verificationToken);
+        // If user exists → long token, else → short token (to allow signup)
+        String verificationToken = (user != null)
+                ? jwtService.generateUserToken(user, longExpiry)
+                : jwtService.generatePhoneToken(phoneFromToken, shortExpiry);
 
+        response.setHeader("Authorization", "Bearer " + verificationToken);
         otpService.deleteOtp(phoneFromToken);
 
         return ResponseEntity.ok(new ApiResponse(200, "OTP verified successfully", user));
@@ -74,10 +84,27 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse> signup(@Valid @RequestBody SignupRequest body,
-                                              HttpServletResponse response) {
-        User newUser = authService.signup(body.getFullName(), body.getPhoneNumber());
-        String token = jwtService.generateToken(newUser.getPhoneNumber(), longExpiry);
+                                              HttpServletResponse response,
+                                              HttpServletRequest request) {
+
+        String phoneFromToken = (String) request.getAttribute("phoneNumber");
+        if (phoneFromToken == null) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(400, "Missing or invalid session token", null));
+        }
+
+        if (!body.getPhoneNumber().equals(phoneFromToken)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(400, "Phone number does not match verified session", null));
+        }
+
+        User newUser = authService.signup(body.getFullName(), phoneFromToken);
+
+        // Long-lived token for authenticated user
+        String token = jwtService.generateUserToken(newUser, longExpiry);
         response.setHeader("Authorization", "Bearer " + token);
-        return ResponseEntity.status(201).body(new ApiResponse(201, "User created successfully", newUser));
+
+        return ResponseEntity.status(201)
+                .body(new ApiResponse(201, "User created successfully", newUser));
     }
 }

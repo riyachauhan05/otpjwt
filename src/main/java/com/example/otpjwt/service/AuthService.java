@@ -8,23 +8,28 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
     private final UserRepository userRepository;
 
-   public User signup(String fullName, String phoneNumber) {
-    if (phoneNumber == null || phoneNumber.isEmpty()) {
-        throw new IllegalArgumentException("Phone number must not be empty or null");
-    }
-    if (userRepository.findByPhoneNumber(phoneNumber).isPresent()) {
-        throw new RuntimeException("User already exists with this phone number");
-    }
-    User u = new User();
-    u.setFullName(fullName);
-    u.setPhoneNumber(phoneNumber);
-    return userRepository.save(u);
-}
+    public User signup(String fullName, String phoneNumber) {
+        // Validate phone format
+        if (phoneNumber == null || !phoneNumber.matches("\\d{10}")) {
+            throw new IllegalArgumentException("Phone number must be exactly 10 digits");
+        }
 
+        // Check for duplicate
+        if (userRepository.findByPhoneNumber(phoneNumber).isPresent()) {
+            throw new RuntimeException("User already exists with this phone number");
+        }
 
-    public User getUserByPhone(String phone) {
-        return userRepository.findByPhoneNumber(phone).orElse(null);
+        // Save new user
+        User u = new User();
+        u.setFullName(fullName);
+        u.setPhoneNumber(phoneNumber);
+        return userRepository.save(u);
+    }
+
+    public User getUserByPhone(String phoneNumber) {
+        return userRepository.findByPhoneNumber(phoneNumber).orElse(null);
     }
 }

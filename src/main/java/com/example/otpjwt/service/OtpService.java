@@ -1,26 +1,33 @@
 package com.example.otpjwt.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@RequiredArgsConstructor
 public class OtpService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final Map<String, String> otpStore = new ConcurrentHashMap<>();
+    private final Map<String, Long> expiryStore = new ConcurrentHashMap<>();
 
-    public void saveOtp(String phone, String otp, long expiryMillis) {
-        redisTemplate.opsForValue().set(phone, otp, expiryMillis, TimeUnit.MILLISECONDS);
+    public void saveOtp(String phoneNumber, String otp, long expirySeconds) {
+        otpStore.put(phoneNumber, otp);
+        expiryStore.put(phoneNumber, System.currentTimeMillis() + expirySeconds * 1000);
     }
 
-    public String getOtp(String phone) {
-        return redisTemplate.opsForValue().get(phone);
+    public String getOtp(String phoneNumber) {
+        Long expiry = expiryStore.get(phoneNumber);
+        if (expiry == null || System.currentTimeMillis() > expiry) {
+            otpStore.remove(phoneNumber);
+            expiryStore.remove(phoneNumber);
+            return null;
+        }
+        return otpStore.get(phoneNumber);
     }
 
-    public void deleteOtp(String phone) {
-        redisTemplate.delete(phone);
+    public void deleteOtp(String phoneNumber) {
+        otpStore.remove(phoneNumber);
+        expiryStore.remove(phoneNumber);
     }
 }

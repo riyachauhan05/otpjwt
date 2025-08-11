@@ -33,8 +33,10 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            if (jwtService.validateToken(token)) {
-                String phoneNumber = jwtService.extractUsername(token);
+            // Updated method call to use the correct name: isTokenValid()
+            if (jwtService.isTokenValid(token)) {
+                // Updated method call to use the correct name: extractSubject()
+                String phoneNumber = jwtService.extractSubject(token);
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(

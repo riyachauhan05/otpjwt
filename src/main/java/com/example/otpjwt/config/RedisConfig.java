@@ -1,23 +1,36 @@
 package com.example.otpjwt.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
 
+    @Value("${redis.host}")
+    private String redisHost;
+
+    @Value("${redis.port}")
+    private int redisPort;
+
+    @Value("${redis.username}")
+    private String redisUsername;
+
+    @Value("${redis.password}")
+    private String redisPassword;
+
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
-        redisConfig.setHostName("measured-hyena-49931.upstash.io");
-        redisConfig.setPort(6379);
-        redisConfig.setUsername("default");
-        redisConfig.setPassword("AcMLAAIjcDEwYTgzMDcyNWM4Y2U0OTEyYTE2NmFjZDg3YWQ5NGY5ZHAxMA");
+        redisConfig.setHostName(redisHost);
+        redisConfig.setPort(redisPort);
+        redisConfig.setUsername(redisUsername);
+        redisConfig.setPassword(redisPassword);
 
         LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
                 .useSsl()

@@ -11,4 +11,5 @@ public class User {
     private String id; // _key/_id in ArangoDB
     private String fullName;
     private String phoneNumber;
+    private boolean verified =false;
 }

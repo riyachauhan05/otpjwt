@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class VerifyOtpRequest {
-    @NotBlank
+   @NotBlank(message = "OTP is required")
     private String otp;
 }

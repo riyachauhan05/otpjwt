@@ -33,23 +33,31 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            // Updated method call to use the correct name: isTokenValid()
-            if (jwtService.isTokenValid(token)) {
-                // Updated method call to use the correct name: extractSubject()
-                String phoneNumber = jwtService.extractSubject(token);
+            try {
+                if (jwtService.isTokenValid(token)) {
+                    String phoneNumber = jwtService.extractSubject(token);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                phoneNumber,
-                                null,
-                                Collections.emptyList()
-                        );
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    phoneNumber,
+                                    null,
+                                    Collections.emptyList()
+                            );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                request.setAttribute("phoneNumber", phoneNumber);
-            } else {
-                log.warn("JWT validation failed - Invalid or expired token");
+                    // ✅ Set authentication for current request
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    // ✅ Pass phoneNumber to controller (useful for fetching user data)
+                    request.setAttribute("phoneNumber", phoneNumber);
+
+                } else {
+                    log.warn("❌ JWT validation failed - Invalid or expired token");
+                }
+            } catch (Exception e) {
+                log.error("❌ JWT processing error: {}", e.getMessage());
             }
+        } else {
+            log.debug("No Authorization header or invalid format");
         }
 
         filterChain.doFilter(request, response);

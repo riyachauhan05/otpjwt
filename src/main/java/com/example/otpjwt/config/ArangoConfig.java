@@ -55,3 +55,8 @@ public class ArangoConfig implements ArangoConfiguration {
         return arangoDB.db(database);
     }
 }
+
+
+
+//This is a Spring configuration class that sets up and provides
+// ArangoDB database connectivity in your Spring Boot application.

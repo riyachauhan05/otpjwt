@@ -19,22 +19,21 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers(
-                    "/api/auth/request-otp",
-                    "/api/auth/signup",
-                    "/error"
-                ).permitAll()
+                // Public: can request OTP without any token
+                .requestMatchers("/api/auth/request-otp", "/error").permitAll()
 
-                // OTP verification requires short-lived session token
-                .requestMatchers("/api/auth/verify-otp").authenticated()
+                // Verify OTP: still public for Spring Security, OTP checked in controller/service
+                .requestMatchers("/api/auth/verify-otp").permitAll()
+
+                // Signup: must have a valid short-lived JWT (from verify-otp)
+                .requestMatchers("/api/auth/signup").authenticated()
 
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
-            // No sessions, JWT only
+            // No HTTP session, rely solely on JWT
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // Register our JWT filter before the default authentication filter
+            // Add JWT filter before username/password auth filter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

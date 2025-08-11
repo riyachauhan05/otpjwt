@@ -40,11 +40,19 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, String> redisTemplate(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
         return template;
     }
+
 }
+
+// This RedisConfig class configures a Redis connection in your Spring Boot app
+// using Lettuce client(Lettuce is a popular Java Redis client library),
+// setting up connection details (host, port, username, password, SSL) and
+// provides a RedisTemplate
+// bean for performing Redis operations with string serialization for keys and
+// values.

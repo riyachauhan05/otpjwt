@@ -39,9 +39,11 @@ public class OtpService {
     }
 
     public void saveOtp(String phoneNumber, long expirySeconds) {
-        String hashedOtp = hashOtp(HARDCODED_OTP);
-        redisTemplate.opsForValue().set(buildOtpKey(phoneNumber), hashedOtp, Duration.ofSeconds(expirySeconds));
-    }
+    String hashedOtp = hashOtp(HARDCODED_OTP);
+    System.out.println("Saving OTP for phone: " + phoneNumber + " with value: " + hashedOtp);
+    redisTemplate.opsForValue().set(buildOtpKey(phoneNumber), hashedOtp, Duration.ofSeconds(expirySeconds));
+}
+
 
     public boolean verifyOtp(String phoneNumber, String providedOtp) {
         String storedHashedOtp = redisTemplate.opsForValue().get(buildOtpKey(phoneNumber));

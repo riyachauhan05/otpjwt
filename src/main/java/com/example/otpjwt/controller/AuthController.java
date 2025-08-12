@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/request-otp")
     public ResponseEntity<ApiResponse> requestOtp(@Valid @RequestBody RequestOtpRequest body,
-                                                  HttpServletResponse response) {
+            HttpServletResponse response) {
         String phone = body.getPhoneNumber();
         if (!phone.matches("\\d{10}")) {
             return ResponseEntity.badRequest()
@@ -47,8 +47,8 @@ public class AuthController {
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest body,
-                                                  HttpServletRequest request,
-                                                  HttpServletResponse response) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
         String phoneFromToken = (String) request.getAttribute("phoneNumber");
         if (phoneFromToken == null) {
             return ResponseEntity.badRequest()
@@ -72,8 +72,8 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse> signup(@Valid @RequestBody SignupRequest body,
-                                                  HttpServletResponse response,
-                                                  HttpServletRequest request) {
+            HttpServletResponse response,
+            HttpServletRequest request) {
         String phoneFromToken = (String) request.getAttribute("phoneNumber");
         if (phoneFromToken == null) {
             return ResponseEntity.badRequest()
